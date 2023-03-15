@@ -1,0 +1,56 @@
+<?php
+
+namespace App\Services;
+
+class HL7Parser
+{
+    private $delimiters = [];
+    private $segments = [];
+
+    public function __construct(string $hl7Message)
+    {
+        $this->parseDelimiters($hl7Message);
+        $this->parseSegments($hl7Message);
+    }
+
+    private function parseDelimiters(string $hl7Message): void
+    {
+        $this->delimiters = [
+            'segment' => "\r",
+            'field' => $hl7Message[3],
+            'component' => $hl7Message[4],
+            'subcomponent' => $hl7Message[7],
+            'repetition' => $hl7Message[5],
+            'escape' => $hl7Message[6],
+        ];
+    }
+
+    private function parseSegments(string $hl7Message): void
+    {
+        $segments = explode($this->delimiters['segment'], $hl7Message);
+        foreach ($segments as $segment) {
+            $fields = explode($this->delimiters['field'], $segment);
+            $parsedFields = [];
+            foreach ($fields as $field) {
+                $components = explode($this->delimiters['component'], $field);
+                $parsedComponents = [];
+                foreach ($components as $component) {
+                    $subcomponents = explode($this->delimiters['subcomponent'], $component);
+                    $parsedComponents[] = $subcomponents;
+                }
+                $parsedFields[] = $parsedComponents;
+            }
+            $this->segments[] = $parsedFields;
+        }
+    }
+
+    public function toJSON(): string
+    {
+        return json_encode($this->segments);
+    }
+
+    public function toArray(): array
+    {
+        return $this->segments;
+    }
+}
