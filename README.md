@@ -7,6 +7,7 @@ example of use:
 use App\Services\HL7Parser;
 
 $hl7Message = '...'; // Your HL7 message
+
 $parser = new HL7Parser($hl7Message);
 
 // To get the data as a JSON object
